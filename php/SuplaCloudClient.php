@@ -189,6 +189,14 @@ class SuplaCloudClient
 		return false;
 	}
 	
+	private function getResult($path) {
+		
+		$result = $this->apiGET('/api'.$path);
+		$this->autoLogout();
+		
+		return $result;
+	}
+	
 	public function getLastError() {
 		return $this->last_error;
 	}
@@ -219,26 +227,39 @@ class SuplaCloudClient
 		$this->token = null;
 	}
 	
+	public function getServerInfo() {
+		
+		return $this->getResult('/server/info');
+	}
+	
 	public function locations() {
 		
-		$result = $this->apiGET('/api/locations');
-		$this->autoLogout();
-		
-		return $result;
+		return $this->getResult('/locations');
 	}
 	
 	public function accessIDs() {
 	
-		$result = $this->apiGET('/api/accessids');
-		$this->autoLogout();
-		
-		return $result;
-		
+		return $this->getResult('/accessids');	
 	}
 	
 	public function ioDevices() {
 		
-		$this->autoLogout();
+		return $this->getResult('/iodevices');
+	}
+	
+	public function device_isEnabled($devid) {
+		
+		return $this->getResult('/iodevice/'.$devid.'/enabled');
+	}
+	
+	public function device_isOnline($devid) {
+	
+		return $this->getResult('/iodevice/'.$devid.'/online');
+	}
+	
+	public function temperatureLog_ItemCount($channelid) {
+		
+		return $this->getResult('/channel/'.$channelid.'/log/temp/count');
 	}
 	
 };
