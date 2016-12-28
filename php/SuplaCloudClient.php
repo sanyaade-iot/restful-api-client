@@ -252,14 +252,34 @@ class SuplaCloudClient
 		return $this->getResult('/iodevice/'.$devid.'/enabled');
 	}
 	
-	public function device_isOnline($devid) {
+	public function device_isConnected($devid) {
 	
-		return $this->getResult('/iodevice/'.$devid.'/online');
+		return $this->getResult('/iodevice/'.$devid.'/connected');
 	}
 	
 	public function temperatureLog_ItemCount($channelid) {
 		
 		return $this->getResult('/channel/'.$channelid.'/log/temp/count');
+	}
+	
+	public function temperatureLog_GetItems($channelid, $offset = 0, $limit = 0) {
+		
+		return $this->getResult('/channel/'.$channelid.'/log/temp/items/'.$offset.'/'.$limit);
+	}
+	
+	public function temperatureAndHumidityLog_ItemCount($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/log/temp-hum/count');
+	}
+	
+	public function temperatureAndHumidityLog_GetItems($channelid, $offset = 0, $limit = 0) {
+	
+		return $this->getResult('/channel/'.$channelid.'/log/temp-hum/items/'.$offset.'/'.$limit);
+	}
+	
+	public function channelValue_isOn($channelid) {
+		
+		return $this->getResult('/channel/'.$channelid.'/value/on');
 	}
 	
 };
