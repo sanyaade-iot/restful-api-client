@@ -16,9 +16,7 @@
  */
 
 
-/**
- * @author Przemyslaw Zygmunt przemek@supla.org
- */
+
 class SuplaCloudClient
 {
 	protected $server;
@@ -101,10 +99,17 @@ class SuplaCloudClient
 			
 			if ( $this->debug ) {
 				var_dump($cresult);
+				var_dump($result);
 			}
 			
 			if ( @$result->error !== null ) {
-				$this->setLastError(@$result->error->message, intval(@$result->error->code));
+				
+				if ( @$result->error_description !== null ) {
+					$this->setLastError($result->error_description);
+				} else {
+					$this->setLastError(@$result->error->message, intval(@$result->error->code));
+				}
+				
 				$result = false;
 			}
 		
@@ -142,7 +147,10 @@ class SuplaCloudClient
 			
 		} else {
 			if ( $result === FALSE ) {
-				$this->setLastError('Unknown error');
+				
+				if ( $this->last_error === null )
+					$this->setLastError('Unknown error');
+				
 			} else {
 				$this->setLastError(@$result->error_description);
 			}
@@ -277,10 +285,49 @@ class SuplaCloudClient
 		return $this->getResult('/channel/'.$channelid.'/log/temp-hum/items/'.$offset.'/'.$limit);
 	}
 	
-	public function channelValue_isOn($channelid) {
+	public function channelValue_On($channelid) {
 		
 		return $this->getResult('/channel/'.$channelid.'/value/on');
 	}
 	
+	public function channelValue_Hi($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/hi');
+	}
+	
+	public function channelValue_Temperature($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/temperature');
+	}
+	
+	public function channelValue_Humidity($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/humidity');
+	}
+	
+	public function channelValue_TemperatureAndHumidity($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/temp-hum');
+	}
+	
+	public function channelValue_RGBW($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/rgbw');
+	}
+	
+	public function channelValue_Color($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/color');
+	}
+	
+	public function channelValue_ColorBrightness($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/color-brightness');
+	}
+	
+	public function channelValue_Brightness($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/brightness');
+	}
 };
 

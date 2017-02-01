@@ -15,9 +15,6 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/**
- * @author Przemyslaw Zygmunt przemek@supla.org
- */
 
 include_once 'SuplaCloudClient.php';
 
@@ -26,7 +23,7 @@ $scc = new SuplaCloudClient(array('server' => 'devel-cloud.supla.org',
 		                    'clientId' => '31_255p10f3xf404s8swsg08400kw84kc8o4cocco48o840ccgkgo',
 		                    'secret' => '1fgmr1v3wbwgwcck8cos4og8cw8w0oosc8w8ckkgc8co840044',
 		                    'username' => 'api_5',
-		                    'password' => '4r3M9mgaUrLEP71w3P',
+		                    'password' => '',
 ));
 
 $scc->setDebug(true);
@@ -44,7 +41,16 @@ $scc->setDebug(true);
 //$result = $scc->temperatureLog_GetItems(2334);
 //$result = $scc->temperatureAndHumidityLog_ItemCount(5);
 //$result = $scc->temperatureAndHumidityLog_GetItems(5);
-$result = $scc->channelValue_isOn(6);
+//$result = $scc->channelValue_On(6);
+$result = $scc->channelValue_Hi(2395);
+//$result = $scc->channelValue_Humidity(5);
+//$result = $scc->channelValue_Temperature(5);
+//$result = $scc->channelValue_TemperatureAndHumidity(5);
+//$result = $scc->channelValue_RGBW(1);
+//$result = $scc->channelValue_Color(1);
+//$result = $scc->channelValue_ColorBrightness(1);
+//$result = $scc->channelValue_Brightness(1);
+
 
 if ( false === $result ) {
 	echo "------ Error ------\n";
