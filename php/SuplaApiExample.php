@@ -42,7 +42,7 @@ $scc->setDebug(true);
 //$result = $scc->temperatureAndHumidityLog_ItemCount(5);
 //$result = $scc->temperatureAndHumidityLog_GetItems(5);
 //$result = $scc->channelValue_On(6);
-$result = $scc->channelValue_Hi(2395);
+//$result = $scc->channelValue_Hi(2395);
 //$result = $scc->channelValue_Humidity(5);
 //$result = $scc->channelValue_Temperature(5);
 //$result = $scc->channelValue_TemperatureAndHumidity(5);
@@ -50,7 +50,8 @@ $result = $scc->channelValue_Hi(2395);
 //$result = $scc->channelValue_Color(1);
 //$result = $scc->channelValue_ColorBrightness(1);
 //$result = $scc->channelValue_Brightness(1);
-
+//$result = $scc->channelValue_Distance(4);
+//$result = $scc->channelValue_Depth(4);
 
 if ( false === $result ) {
 	echo "------ Error ------\n";

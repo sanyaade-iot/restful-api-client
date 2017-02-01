@@ -329,5 +329,16 @@ class SuplaCloudClient
 	
 		return $this->getResult('/channel/'.$channelid.'/value/brightness');
 	}
+	
+	public function channelValue_Distance($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/distance');
+	}
+	
+	public function channelValue_Depth($channelid) {
+	
+		return $this->getResult('/channel/'.$channelid.'/value/depth');
+	}
+	
 };
 
