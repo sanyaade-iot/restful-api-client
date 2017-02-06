@@ -197,9 +197,29 @@ class SuplaCloudClient
 		return false;
 	}
 	
+	private function apiPOST($path, $data = null) {
+	
+		$result = $this->remoteRequest($data, $path, 'POST', true);
+	
+		if ( $result !== false && @$result->success == true ) {
+			return @$result->data;
+		}
+			
+	
+		return false;
+	}
+	
 	private function getResult($path) {
 		
 		$result = $this->apiGET('/api'.$path);
+		$this->autoLogout();
+		
+		return $result;
+	}
+	
+	private function post($path, $data = null) {
+		
+		$result = $this->apiPOST('/api'.$path, $data);
 		$this->autoLogout();
 		
 		return $result;
@@ -237,7 +257,7 @@ class SuplaCloudClient
 	
 	public function getServerInfo() {
 		
-		return $this->getResult('/server/info');
+		return $this->getResult('/server-info');
 	}
 	
 	public function locations() {
@@ -254,90 +274,154 @@ class SuplaCloudClient
 		
 		return $this->getResult('/iodevices');
 	}
-	
-	public function device_isEnabled($devid) {
 		
-		return $this->getResult('/iodevice/'.$devid.'/enabled');
-	}
-	
 	public function device_isConnected($devid) {
 	
-		return $this->getResult('/iodevice/'.$devid.'/connected');
+		return $this->getResult('/iodevices/'.$devid.'/connected');
+	}
+	
+	public function device_isEnabled($devid) {
+	
+		return $this->getResult('/iodevices/'.$devid.'/enabled');
 	}
 	
 	public function temperatureLog_ItemCount($channelid) {
 		
-		return $this->getResult('/channel/'.$channelid.'/log/temp/count');
+		return $this->getResult('/channels/'.$channelid.'/log-temp-count');
 	}
 	
 	public function temperatureLog_GetItems($channelid, $offset = 0, $limit = 0) {
 		
-		return $this->getResult('/channel/'.$channelid.'/log/temp/items/'.$offset.'/'.$limit);
+		return $this->getResult('/channels/'.$channelid.'/log-temp-items/'.$offset.'/'.$limit);
 	}
 	
 	public function temperatureAndHumidityLog_ItemCount($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/log/temp-hum/count');
+		return $this->getResult('/channels/'.$channelid.'/log-temphum-count');
 	}
 	
 	public function temperatureAndHumidityLog_GetItems($channelid, $offset = 0, $limit = 0) {
 	
-		return $this->getResult('/channel/'.$channelid.'/log/temp-hum/items/'.$offset.'/'.$limit);
+		return $this->getResult('/channels/'.$channelid.'/log-temphum-items/'.$offset.'/'.$limit);
 	}
 	
-	public function channelValue_On($channelid) {
+	public function channel_GetOn($channelid) {
 		
-		return $this->getResult('/channel/'.$channelid.'/value/on');
+		return $this->getResult('/channels/'.$channelid.'/on');
 	}
 	
-	public function channelValue_Hi($channelid) {
+	public function channel_GetHi($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/hi');
+		return $this->getResult('/channels/'.$channelid.'/hi');
 	}
 	
-	public function channelValue_Temperature($channelid) {
+	public function channel_GetTemperature($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/temperature');
+		return $this->getResult('/channels/'.$channelid.'/temperature');
 	}
 	
-	public function channelValue_Humidity($channelid) {
+	public function channel_GetHumidity($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/humidity');
+		return $this->getResult('/channels/'.$channelid.'/humidity');
 	}
 	
-	public function channelValue_TemperatureAndHumidity($channelid) {
+	public function channel_GetTemperatureAndHumidity($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/temp-hum');
+		return $this->getResult('/channels/'.$channelid.'/temp-hum');
 	}
 	
-	public function channelValue_RGBW($channelid) {
+	public function channel_GetRGBW($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/rgbw');
+		return $this->getResult('/channels/'.$channelid.'/rgbw');
 	}
 	
-	public function channelValue_Color($channelid) {
+	public function channel_GetRGB($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/color');
+		return $this->getResult('/channels/'.$channelid.'/rgb');
 	}
 	
-	public function channelValue_ColorBrightness($channelid) {
+	public function channel_GetColor($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/color-brightness');
+		return $this->getResult('/channels/'.$channelid.'/color');
 	}
 	
-	public function channelValue_Brightness($channelid) {
+	public function channel_GetColorBrightness($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/brightness');
+		return $this->getResult('/channels/'.$channelid.'/color-brightness');
 	}
 	
-	public function channelValue_Distance($channelid) {
+	public function channel_GetBrightness($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/distance');
+		return $this->getResult('/channels/'.$channelid.'/brightness');
 	}
 	
-	public function channelValue_Depth($channelid) {
+	public function channel_GetDistance($channelid) {
 	
-		return $this->getResult('/channel/'.$channelid.'/value/depth');
+		return $this->getResult('/channels/'.$channelid.'/distance');
+	}
+	
+	public function channel_GetDepth($channelid) {
+	
+		return $this->getResult('/channels/'.$channelid.'/depth');
+	}
+	
+	public function channel_SetRGBW($channelid, $color, $color_brightness, $brightness) {
+	
+		$data = array('color' => $color, 
+		              'color_brightness' => $color_brightness,
+				      'brightness' => $brightness);
+		
+		return $this->post('/channels/'.$channelid.'/rgbw', $data);
+	}
+	
+	public function channel_SetRGB($channelid, $color, $color_brightness) {
+	
+		$data = array('color' => $color, 
+		              'color_brightness' => $color_brightness);
+	
+		return $this->post('/channels/'.$channelid.'/rgb', $data);
+	}
+	
+	public function channel_SetBrightness($channelid, $brightness) {
+	
+		$data = array('brightness' => $brightness);
+	
+		return $this->post('/channels/'.$channelid.'/brightness', $data);
+	}
+	
+	public function channel_TurnOn($channelid) {
+	
+		return $this->post('/channels/'.$channelid.'/turn-on');
+	}
+	
+	public function channel_TurnOff($channelid) {
+	
+		return $this->post('/channels/'.$channelid.'/turn-off');
+	}
+	
+	public function channel_Open($channelid) {
+	
+		return $this->post('/channels/'.$channelid.'/open');
+	}
+	
+	public function channel_OpenClose($channelid) {
+	
+		return $this->post('/channels/'.$channelid.'/open-close');
+	}
+	
+	public function channel_Shut($channelid) {
+	
+		return $this->post('/channels/'.$channelid.'/shut');
+	}
+
+	public function channel_Reveal($channelid) {
+	
+		return $this->post('/channels/'.$channelid.'/reveal');
+	}
+	
+	public function channel_Stop($channelid) {
+	
+		return $this->post('/channels/'.$channelid.'/stop');
 	}
 	
 };
