@@ -43,11 +43,11 @@ class SuplaCloudClient
 		$this->auto_logout = $auto_logout;
 	}
 	
-	private function setLastError($error, $code = null) {
-		$this->last_error = array('error' => $error, 'code' => $code);
+	private function setLastError($error) {
+		$this->last_error = $error;
 	}
 	
-	private function remoteRequest($data, $path, $request_type = 'POST', $bearer = false ) {
+	private function remoteRequest($data, $path, $method = 'POST', $bearer = false ) {
 	
 		$data_string = '';
 		$result = FALSE;
@@ -58,7 +58,7 @@ class SuplaCloudClient
 			return false;
 		}
 		
-		if ( $request_type == 'GET' ) {
+		if ( $method == 'GET' ) {
 			$data_string = @http_build_query($data);
 			
 			if ( $data_string !== false ) {
@@ -71,9 +71,9 @@ class SuplaCloudClient
 		}
 			
 		$ch = curl_init('https://'.$this->server.$path);
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request_type);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 		
-		if ( $request_type == 'POST' ) {
+		if ( $method != 'GET' ) {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
 		}
 		
@@ -93,35 +93,28 @@ class SuplaCloudClient
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 		$cresult = curl_exec($ch);
+		$result = false;
+	
+		$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	
 		if ( curl_errno($ch) == 0 ) {
-			$result = json_decode($cresult);
 			
-			if ( $this->debug ) {
-				var_dump($cresult);
-				var_dump($result);
+			if ( $code === 200 ) {
+				$result = json_decode($cresult);
+			} else {
+				$this->setLastError("HTTP: ". $code);
 			}
-			
-			if ( @$result->error !== null ) {
-				
-				if ( @$result->error_description !== null ) {
-					$this->setLastError($result->error_description);
-				} else {
-					$this->setLastError(@$result->error->message, intval(@$result->error->code));
-				}
-				
-				$result = false;
-			}
-		
 			
 		} else {
 			
-			if ( $this->debug ) {
-				print curl_error($ch);
-			}
+			$this->setLastError("CURL ERR: ". curl_error($ch));
 			
 		}
 
+		if ( $this->debug ) {
+			var_dump($cresult);
+			var_dump($result);
+		}
 	
 		curl_close( $ch );	
 		return $result;
@@ -145,16 +138,13 @@ class SuplaCloudClient
 			
 			return true;
 			
-		} else {
-			if ( $result === FALSE ) {
+		} else if ( $result === FALSE
+				 && $this->last_error === null ) {
 				
-				if ( $this->last_error === null )
-					$this->setLastError('Unknown error');
-				
-			} else {
-				$this->setLastError(@$result->error_description);
-			}
+				$this->setLastError('Unknown error');
+			
 		}
+
 		
 		$this->token = null;
 		return false;
@@ -189,7 +179,7 @@ class SuplaCloudClient
 	
 		$result = $this->remoteRequest(null, $path, 'GET', true);
 		
-		if ( $result !== false && @$result->success == true ) {
+		if ( $result !== false ) {
 			return @$result->data;
 		}
 			
@@ -197,16 +187,30 @@ class SuplaCloudClient
 		return false;
 	}
 	
-	private function apiPOST($path, $data = null) {
+	private function apiP($path, $method, $data = null) {
 	
-		$result = $this->remoteRequest($data, $path, 'POST', true);
+		$result = $this->remoteRequest($data, $path, $method, true);
 	
-		if ( $result !== false && @$result->success == true ) {
+		if ( $result !== false ) {
 			return @$result->data;
 		}
 			
-	
 		return false;
+	}
+	
+	private function apiPOST($path, $data = null) {
+			
+		return $this->apiP($path, 'POST', $data);
+	}
+	
+	private function apiPUT($path, $data = null) {
+	
+		return $this->apiP($path, 'PUT', $data);
+	}
+	
+	private function apiPATCH($path, $data = null) {
+	
+		return $this->apiP($path, 'PATCH', $data);
 	}
 	
 	private function getResult($path) {
@@ -222,6 +226,22 @@ class SuplaCloudClient
 		$result = $this->apiPOST('/api'.$path, $data);
 		$this->autoLogout();
 		
+		return $result;
+	}
+	
+	private function put($path, $data = null) {
+	
+		$result = $this->apiPUT('/api'.$path, $data);
+		$this->autoLogout();
+	
+		return $result;
+	}
+	
+	private function patch($path, $data = null) {
+	
+		$result = $this->apiPATCH('/api'.$path, $data);
+		$this->autoLogout();
+	
 		return $result;
 	}
 	
@@ -275,94 +295,34 @@ class SuplaCloudClient
 		return $this->getResult('/iodevices');
 	}
 		
-	public function device_isConnected($devid) {
+	public function ioDevice($devid) {
 	
-		return $this->getResult('/iodevices/'.$devid.'/connected');
-	}
-	
-	public function device_isEnabled($devid) {
-	
-		return $this->getResult('/iodevices/'.$devid.'/enabled');
+		return $this->getResult('/iodevices/'.$devid);
 	}
 	
 	public function temperatureLog_ItemCount($channelid) {
 		
-		return $this->getResult('/channels/'.$channelid.'/log-temp-count');
+		return $this->getResult('/channels/'.$channelid.'/temperature-log-count');
 	}
 	
 	public function temperatureLog_GetItems($channelid, $offset = 0, $limit = 0) {
 		
-		return $this->getResult('/channels/'.$channelid.'/log-temp-items/'.$offset.'/'.$limit);
+		return $this->getResult('/channels/'.$channelid.'/temperature-log-items?offset='.$offset.'&limit='.$limit);
 	}
 	
 	public function temperatureAndHumidityLog_ItemCount($channelid) {
 	
-		return $this->getResult('/channels/'.$channelid.'/log-temphum-count');
+		return $this->getResult('/channels/'.$channelid.'/temperature-and-humidity-count');
 	}
 	
 	public function temperatureAndHumidityLog_GetItems($channelid, $offset = 0, $limit = 0) {
 	
-		return $this->getResult('/channels/'.$channelid.'/log-temphum-items/'.$offset.'/'.$limit);
+		return $this->getResult('/channels/'.$channelid.'/temperature-and-humidity-items?offset='.$offset.'&limit='.$limit);
 	}
 	
-	public function channel_GetOn($channelid) {
+	public function channel($channelid) {
 		
-		return $this->getResult('/channels/'.$channelid.'/on');
-	}
-	
-	public function channel_GetHi($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/hi');
-	}
-	
-	public function channel_GetTemperature($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/temperature');
-	}
-	
-	public function channel_GetHumidity($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/humidity');
-	}
-	
-	public function channel_GetTemperatureAndHumidity($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/temp-hum');
-	}
-	
-	public function channel_GetRGBW($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/rgbw');
-	}
-	
-	public function channel_GetRGB($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/rgb');
-	}
-	
-	public function channel_GetColor($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/color');
-	}
-	
-	public function channel_GetColorBrightness($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/color-brightness');
-	}
-	
-	public function channel_GetBrightness($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/brightness');
-	}
-	
-	public function channel_GetDistance($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/distance');
-	}
-	
-	public function channel_GetDepth($channelid) {
-	
-		return $this->getResult('/channels/'.$channelid.'/depth');
+		return $this->getResult('/channels/'.$channelid);
 	}
 	
 	public function channel_SetRGBW($channelid, $color, $color_brightness, $brightness) {
@@ -371,7 +331,7 @@ class SuplaCloudClient
 		              'color_brightness' => $color_brightness,
 				      'brightness' => $brightness);
 		
-		return $this->post('/channels/'.$channelid.'/rgbw', $data);
+		return $this->put('/channels/'.$channelid, $data);
 	}
 	
 	public function channel_SetRGB($channelid, $color, $color_brightness) {
@@ -379,49 +339,49 @@ class SuplaCloudClient
 		$data = array('color' => $color, 
 		              'color_brightness' => $color_brightness);
 	
-		return $this->post('/channels/'.$channelid.'/rgb', $data);
+		return $this->put('/channels/'.$channelid, $data);
 	}
 	
 	public function channel_SetBrightness($channelid, $brightness) {
 	
 		$data = array('brightness' => $brightness);
 	
-		return $this->post('/channels/'.$channelid.'/brightness', $data);
+		return $this->put('/channels/'.$channelid, $data);
 	}
 	
 	public function channel_TurnOn($channelid) {
 	
-		return $this->post('/channels/'.$channelid.'/turn-on');
+		return $this->patch('/channels/'.$channelid, array('action' => 'turn-on'));
 	}
 	
 	public function channel_TurnOff($channelid) {
 	
-		return $this->post('/channels/'.$channelid.'/turn-off');
+		return $this->patch('/channels/'.$channelid, array('action' => 'turn-off'));
 	}
 	
 	public function channel_Open($channelid) {
 	
-		return $this->post('/channels/'.$channelid.'/open');
+		return $this->patch('/channels/'.$channelid, array('action' => 'open'));
 	}
 	
 	public function channel_OpenClose($channelid) {
 	
-		return $this->post('/channels/'.$channelid.'/open-close');
+		return $this->patch('/channels/'.$channelid, array('action' => 'open-close'));
 	}
 	
 	public function channel_Shut($channelid) {
 	
-		return $this->post('/channels/'.$channelid.'/shut');
+		return $this->patch('/channels/'.$channelid, array('action' => 'shut'));
 	}
 
 	public function channel_Reveal($channelid) {
 	
-		return $this->post('/channels/'.$channelid.'/reveal');
+		return $this->patch('/channels/'.$channelid, array('action' => 'reveal'));
 	}
 	
 	public function channel_Stop($channelid) {
-	
-		return $this->post('/channels/'.$channelid.'/stop');
+
+		return $this->patch('/channels/'.$channelid, array('action' => 'stop'));
 	}
 	
 };
