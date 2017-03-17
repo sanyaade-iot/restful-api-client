@@ -180,7 +180,7 @@ class SuplaCloudClient
 		$result = $this->remoteRequest(null, $path, 'GET', true);
 		
 		if ( $result !== false ) {
-			return @$result->data;
+			return $result;
 		}
 			
 		
