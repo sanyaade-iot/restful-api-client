@@ -369,14 +369,14 @@ class SuplaCloudClient
 		return $this->patch('/channels/'.$channelid, array('action' => 'open-close'));
 	}
 	
-	public function channel_Shut($channelid) {
+	public function channel_Shut($channelid, $percent = 100) {
 	
-		return $this->patch('/channels/'.$channelid, array('action' => 'shut'));
+		return $this->patch('/channels/'.$channelid, array('action' => 'shut', 'percent' => $percent));
 	}
 
-	public function channel_Reveal($channelid) {
+	public function channel_Reveal($channelid, $percent = 100) {
 	
-		return $this->patch('/channels/'.$channelid, array('action' => 'reveal'));
+		return $this->patch('/channels/'.$channelid, array('action' => 'reveal', 'percent' => $percent));
 	}
 	
 	public function channel_Stop($channelid) {
